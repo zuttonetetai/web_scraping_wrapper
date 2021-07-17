@@ -73,7 +73,6 @@ def search_tag(txt, tag, type_='all', class_name=None, id_name=None, output_text
             if output_text_only:t = t.text 
             searched.append(t)
     elif type_ == 'all':
-        print(type(tag))
         tag_list = []
         if type(tag) is str:
             tag_list.append(tag)
@@ -96,6 +95,3 @@ def search_tag(txt, tag, type_='all', class_name=None, id_name=None, output_text
     else:
         print('tag type error: only str, list or tuple')
     return searched
-    
-
-
