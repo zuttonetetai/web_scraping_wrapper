@@ -1,8 +1,6 @@
 """
 requirements:selenium, chromedriver_binary(Win, MacOS)
 """
-from genericpath import exists
-from typing import Awaitable
 from bs4 import BeautifulSoup
 import requests
 import urllib.request
@@ -118,12 +116,13 @@ def search_tag(txt, tag, search_type='all', class_name=None, id_name=None, outpu
         print('tag type error: only str, list or tuple')
     return searched
     
-def download_img(img_url, path, process_name=None, log=True, dl_on_exist_dir=False):
+def download_img(img_url, path, process_name=None, log=True, file_extension='jpg', dl_on_exist_dir=False):
     """
     img_url: str or list, image urls
     path: str, download directly path
     process_name: str, show process_name on process bar when log=True
     log: bool, show process bar on terminal
+    file_extension: str, 'jpg', 'png' and so on.
     dl_on_exist_dir: bool, True is dl on a already exist directly
     """
     def dl_img():    
@@ -139,7 +138,7 @@ def download_img(img_url, path, process_name=None, log=True, dl_on_exist_dir=Fal
                 bar = tqdm(total=len(img_url))
                 if process_name != None:bar.set_description(process_name)
             for im in img_url:
-                urllib.request.urlretrieve(im, os.path.join(path, str(i).rjust(4, '0')+'.jpg'))
+                urllib.request.urlretrieve(im, os.path.join(path, str(i).rjust(4, '0')+'.'+file_extension))
                 if log:bar.update(1)
                 i = i + 1
         else:
