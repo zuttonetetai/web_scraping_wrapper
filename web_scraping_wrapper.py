@@ -132,7 +132,10 @@ def download_img(img_url, path, process_name=None, log=True, file_extension='jpg
     def dl_img():    
         i = 0
         if type(img_url) is str:
-            urllib.request.urlretrieve(img_url, os.path.join(path, str(i).rjust(4, '0')+'.jpg'))
+            try:
+                urllib.request.urlretrieve(img_url, os.path.join(path, str(i).rjust(4, '0')+'.jpg'))
+            except:
+                print('DOWNLOAD-ERROR:', path, img_url)
             if log:
                 bar = tqdm(total=1)
                 if process_name != None:bar.set_description(process_name)
@@ -142,7 +145,10 @@ def download_img(img_url, path, process_name=None, log=True, file_extension='jpg
                 bar = tqdm(total=len(img_url))
                 if process_name != None:bar.set_description(process_name)
             for im in img_url:
-                urllib.request.urlretrieve(im, os.path.join(path, str(i).rjust(4, '0')+'.'+file_extension))
+                try:
+                    urllib.request.urlretrieve(im, os.path.join(path, str(i).rjust(4, '0')+'.'+file_extension))
+                except:
+                    print('DOWNLOAD-ERROR:', path, im)
                 if log:bar.update(1)
                 i = i + 1
         else:
