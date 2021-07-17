@@ -12,6 +12,7 @@ import time
 from tqdm import tqdm
 import os
 
+
 def get_source_text_with_selenium(url, wait=0, os="windows", headless=True, proxy=None, proxy_id=None, proxy_pass=None):
     """
     scrape web page with selenium.
@@ -40,6 +41,7 @@ def get_source_text_with_selenium(url, wait=0, os="windows", headless=True, prox
     decode_text = literal_eval(str(html)).decode()
     return decode_text
 
+
 def get_source_text(url):
     """
     scrape web page. return str.
@@ -50,6 +52,7 @@ def get_source_text(url):
     urllib.request.install_opener(opener)
     txt = requests.get(url)
     return txt.text
+
 
 def search_tag(txt, tag, search_type='all', class_name=None, id_name=None, output_type='all'):
     """
@@ -115,7 +118,8 @@ def search_tag(txt, tag, search_type='all', class_name=None, id_name=None, outpu
     else:
         print('tag type error: only str, list or tuple')
     return searched
-    
+
+
 def download_img(img_url, path, process_name=None, log=True, file_extension='jpg', dl_on_exist_dir=False):
     """
     img_url: str or list, image urls
