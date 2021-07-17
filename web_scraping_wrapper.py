@@ -1,6 +1,7 @@
 """
 requirements:selenium, chromedriver_binary(Win, MacOS)
 """
+from typing import Awaitable
 from bs4 import BeautifulSoup
 import requests
 import urllib.request
@@ -49,30 +50,49 @@ def get_source_text(url):
     txt = requests.get(url)
     return txt.text
 
-def search_tag(txt, tag, type_='all', class_name=None, id_name=None, output_text_only=True):
+def search_tag(txt, tag, search_type='all', class_name=None, id_name=None, output_type='all'):
     """
-    text: str, source_code
+    text: str, str(source_code), not bs4 tag type
     tag: str or list, html-tag (exp. 'a', 'div')
+    search_type: str, 'all' or 'one'
     class_name: str or list, html-class
     id_name: str or list, html-id
+    output_type: str, 'all' or 'text' or 'href'
 
     Output: searched text list
     """
+    def decision_output_type(t):
+        if search_type == 'all':
+            if output_type == 'all':
+                t = [str(i) for i in t]
+            elif output_type == 'text':
+                t = [str(i.text) for i in t]
+            else:
+                t = [str(i.get(output_type)) for i in t]
+        elif search_type == 'one':
+            if output_type == 'all':
+                t = str(t)
+            elif output_type == 'text':
+                t = str(t.text)
+            else:
+                t = str(t.get(output_type))
+        return t
+
     searched = []
-    if type_ == 'one':
+    if search_type == 'one':
         if class_name == None and id_name == None:
             t = BeautifulSoup(txt, 'lxml').find(tag)
-            if output_text_only:t = t.text 
+            t = decision_output_type(t)
             searched.append(t)
         if class_name != None:
             t = BeautifulSoup(txt, 'lxml').find(tag, class_=class_name)
-            if output_text_only:t = t.text 
+            t = decision_output_type(t) 
             searched.append(t)
         if id_name != None:
             t = BeautifulSoup(txt, 'lxml').find(tag, id=id_name)
-            if output_text_only:t = t.text 
+            t = decision_output_type(t) 
             searched.append(t)
-    elif type_ == 'all':
+    elif search_type == 'all':
         tag_list = []
         if type(tag) is str:
             tag_list.append(tag)
@@ -81,17 +101,17 @@ def search_tag(txt, tag, type_='all', class_name=None, id_name=None, output_text
         for tg in tag_list:
             if class_name == None and id_name == None:
                 t = BeautifulSoup(txt, 'lxml').find_all(tg)
-                print(t, type(t))
-                if output_text_only:t = [i.text for i in t] 
+                t = decision_output_type(t)
                 searched.extend(t)
             if class_name != None:
                 t = BeautifulSoup(txt, 'lxml').find_all(tg, class_=class_name)
-                if output_text_only:t = [i.text for i in t]
+                t = decision_output_type(t)
                 searched.extend(t)
             if id_name != None:
                 t = BeautifulSoup(txt, 'lxml').find_all(tg, id=id_name)
-                if output_text_only:t = [i.text for i in t]
+                t = decision_output_type(t)
                 searched.extend(t)
     else:
         print('tag type error: only str, list or tuple')
     return searched
+    
