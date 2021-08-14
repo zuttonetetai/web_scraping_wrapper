@@ -21,7 +21,7 @@ Web scraping wrapper functions.
   Web scraping with selenium module and chromedriver_binary. return source code(str)
 
   ```python
-  get_source_text_with_selenium(url, wait=0, os="windows", headless=True, proxy=None, proxy_id=None, proxy_pass=None)
+  get_source_text_with_selenium(url, timeout=None, wait=0, os="windows", headless=True, proxy=None, proxy_id=None, proxy_pass=None)
   ```
 
   
