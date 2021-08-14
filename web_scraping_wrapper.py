@@ -13,7 +13,7 @@ from tqdm import tqdm
 import os
 
 
-def get_source_text_with_selenium(url, wait=0, os="windows", headless=True, proxy=None, proxy_id=None, proxy_pass=None):
+def get_source_text_with_selenium(url, timeout=None, wait=0, os="windows", headless=True, proxy=None, proxy_id=None, proxy_pass=None):
     """
     scrape web page with selenium.
     """
@@ -35,6 +35,7 @@ def get_source_text_with_selenium(url, wait=0, os="windows", headless=True, prox
         driver = webdriver.Chrome(options=options)
 
     #get source and encode to utf-8
+    if timeout != None:driver.set_page_load_timeout(timeout)
     driver.get(url)
     time.sleep(wait) #wait loading
     html = driver.page_source.encode('utf-8')
@@ -133,22 +134,30 @@ def download_img(img_url, path, process_name=None, log=True, file_extension='jpg
         i = 0
         if type(img_url) is str:
             try:
-                urllib.request.urlretrieve(img_url, os.path.join(path, str(i).rjust(4, '0')+'.jpg'))
+                urllib.request.urlretrieve(img_url, os.path.join(path, str(i).rjust(4, '0')+'.'+file_extension))
             except:
                 print('DOWNLOAD-ERROR:', path, img_url)
             if log:
                 bar = tqdm(total=1)
                 if process_name != None:bar.set_description(process_name)
                 bar.update(1)
+        
         elif type(img_url) is list:
             if log:
                 bar = tqdm(total=len(img_url))
                 if process_name != None:bar.set_description(process_name)
             for im in img_url:
                 try:
-                    urllib.request.urlretrieve(im, os.path.join(path, str(i).rjust(4, '0')+'.'+file_extension))
-                except:
-                    print('DOWNLOAD-ERROR:', path, im)
+                    #urllib.request.urlretrieve(im, os.path.join(path, str(i).rjust(4, '0')+'.'+file_extension))
+                
+                    headers = {"User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:47.0) Gecko/20100101 Firefox/47.0"}
+                    request = urllib.request.Request(url=im, headers=headers)
+                    with open(os.path.join(path, str(i).rjust(4, '0')+'.'+file_extension), "wb") as f:
+                        f.write(urllib.request.urlopen(request).read())
+
+                except Exception as e:
+                    print('DOWNLOAD-ERROR:', e, path, im)
+
                 if log:bar.update(1)
                 i = i + 1
         else:
