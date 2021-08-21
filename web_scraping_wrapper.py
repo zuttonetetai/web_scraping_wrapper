@@ -11,6 +11,21 @@ from ast import literal_eval
 import time
 from tqdm import tqdm
 import os
+from playwright.sync_api import sync_playwright
+
+
+def get_source_text_with_playright(url):
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        context = browser.new_context(
+            java_script_enabled=True,
+            user_agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:47.0) Gecko/20100101 Firefox/47.0"
+        )
+        page = context.new_page()
+        page.goto(url, wait_until='domcontentloaded')
+        _content = page.content()
+        browser.close()
+    return _content 
 
 
 def get_source_text_with_selenium(url, timeout=None, wait=0, os="windows", headless=True, proxy=None, proxy_id=None, proxy_pass=None):
@@ -148,8 +163,6 @@ def download_img(img_url, path, process_name=None, log=True, file_extension='jpg
                 if process_name != None:bar.set_description(process_name)
             for im in img_url:
                 try:
-                    #urllib.request.urlretrieve(im, os.path.join(path, str(i).rjust(4, '0')+'.'+file_extension))
-                
                     headers = {"User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:47.0) Gecko/20100101 Firefox/47.0"}
                     request = urllib.request.Request(url=im, headers=headers)
                     with open(os.path.join(path, str(i).rjust(4, '0')+'.'+file_extension), "wb") as f:
@@ -157,7 +170,6 @@ def download_img(img_url, path, process_name=None, log=True, file_extension='jpg
 
                 except Exception as e:
                     print('DOWNLOAD-ERROR:', e, path, im)
-
                 if log:bar.update(1)
                 i = i + 1
         else:
