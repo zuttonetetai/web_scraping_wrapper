@@ -99,19 +99,24 @@ def search_tag(txt, tag, search_type='all', class_name=None, id_name=None, outpu
         return t
 
     searched = []
+    tag_list = []
+    if type(tag) is str:tag_list.append(tag)
+    else:tag_list.extend(tag)
+    
     if search_type == 'one':
-        if class_name == None and id_name == None:
-            t = BeautifulSoup(txt, 'lxml').find(tag)
-            t = decision_output_type(t)
-            searched.append(t)
-        if class_name != None:
-            t = BeautifulSoup(txt, 'lxml').find(tag, class_=class_name)
-            t = decision_output_type(t) 
-            searched.append(t)
-        if id_name != None:
-            t = BeautifulSoup(txt, 'lxml').find(tag, id=id_name)
-            t = decision_output_type(t) 
-            searched.append(t)
+        for tg in tag_list:
+            if class_name == None and id_name == None:
+                t = BeautifulSoup(txt, 'lxml').find(tg)
+                t = decision_output_type(t)
+                searched.append(t)
+            if class_name != None:
+                t = BeautifulSoup(txt, 'lxml').find(tg, class_=class_name)
+                t = decision_output_type(t) 
+                searched.append(t)
+            if id_name != None:
+                t = BeautifulSoup(txt, 'lxml').find(tg, id=id_name)
+                t = decision_output_type(t) 
+                searched.append(t)
     elif search_type == 'all':
         tag_list = []
         if type(tag) is str:
