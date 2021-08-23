@@ -12,6 +12,7 @@ import time
 from tqdm import tqdm
 import os
 from playwright.sync_api import sync_playwright
+import fitz
 
 
 def get_source_text_with_playright(url):
@@ -19,14 +20,14 @@ def get_source_text_with_playright(url):
         browser = p.chromium.launch(headless=True)
         context = browser.new_context(
             java_script_enabled=True,
-            user_agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:47.0) Gecko/20100101 Firefox/47.0"
+            user_agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:47.0) Gecko/20100101 Firefox/47.0",
+            accept_downloads=True
         )
         page = context.new_page()
         page.goto(url, wait_until='domcontentloaded')
         _content = page.content()
         browser.close()
-    return _content 
-
+    return _content
 
 def get_source_text_with_selenium(url, timeout=None, wait=0, os="windows", headless=True, proxy=None, proxy_id=None, proxy_pass=None):
     """
@@ -141,7 +142,7 @@ def search_tag(txt, tag, search_type='all', class_name=None, id_name=None, outpu
     return searched
 
 
-def download_img(img_url, path, process_name=None, log=True, file_extension='jpg', dl_on_exist_dir=False):
+def download_img(img_url, path, process_name=None, log=True, file_extension='jpg', dl_on_exist_dir=True, use_playwright=False):
     """
     img_url: str or list, image urls
     path: str, download directly path
@@ -150,6 +151,15 @@ def download_img(img_url, path, process_name=None, log=True, file_extension='jpg
     file_extension: str, 'jpg', 'png' and so on.
     dl_on_exist_dir: bool, True is dl on a already exist directly
     """
+    def to_img_from_pdf(pdf_data, path_name_no_ext):
+        with fitz.open(stream=pdf_data, filetype="pdf") as doc:
+            for i, pg in enumerate(doc):
+                for j, img in enumerate(pg.getImageList()):
+                    x = doc.extractImage(img[0])
+                    name = path_name_no_ext + str(x['ext'])
+                    with open(name, "wb") as ofh:
+                        ofh.write(x['image'])
+    
     def dl_img():    
         i = 0
         if type(img_url) is str:
@@ -168,13 +178,31 @@ def download_img(img_url, path, process_name=None, log=True, file_extension='jpg
                 if process_name != None:bar.set_description(process_name)
             for im in img_url:
                 try:
-                    headers = {"User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:47.0) Gecko/20100101 Firefox/47.0"}
-                    request = urllib.request.Request(url=im, headers=headers)
-                    with open(os.path.join(path, str(i).rjust(4, '0')+'.'+file_extension), "wb") as f:
-                        f.write(urllib.request.urlopen(request).read())
-
-                except Exception as e:
-                    print('DOWNLOAD-ERROR:', e, path, im)
+                    if use_playwright:
+                        with sync_playwright() as p:
+                            browser = p.chromium.launch(headless=True)
+                            context = browser.new_context(
+                                java_script_enabled=True,
+                                user_agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:47.0) Gecko/20100101 Firefox/47.0",
+                                accept_downloads=True
+                            )
+                            page = context.new_page()
+                            page.goto(im, wait_until='load')
+                            img_pdf = page.pdf()
+                            to_img_from_pdf(img_pdf, os.path.join(path, str(i).rjust(4, '0')+'.'))
+                            browser.close()
+                    
+                    else:
+                        #urllib.request.urlretrieve(im, os.path.join(path, str(i).rjust(4, '0')+'.'+file_extension))
+                        headers = {"User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:47.0) Gecko/20100101 Firefox/47.0"}
+                        request = urllib.request.Request(url=im, headers=headers)
+                        with open(os.path.join(path, str(i).rjust(4, '0')+'.'+file_extension), "wb") as f:
+                            f.write(urllib.request.urlopen(request).read())
+                
+                except KeyboardInterrupt:
+                    break
+                #except Exception as e:
+                #    print('DOWNLOAD-ERROR:', e, path, im)
                 if log:bar.update(1)
                 i = i + 1
         else:
