@@ -13,7 +13,11 @@ from tqdm import tqdm
 import os
 from playwright.sync_api import sync_playwright
 import fitz
-
+'''
+pip install fitz
+pip install PyMuPDF
+pip install playwright
+'''
 
 def get_source_text_with_playwright(url):
     with sync_playwright() as p:
